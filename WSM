@@ -1,0 +1,74 @@
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+namespace FiniteStateMachine
+{
+    public class FSM
+    {
+        private readonly List<State> states = new List<State>() {
+        new State
+        {
+            Name = "FirstGreeting",
+            Prompts = new List<Prompt>() { new Prompt("Hi! I'm Clover.", new List<string>() { "Hi" }) },
+
+        },
+        new State
+        {
+            Name = "NeedWater",
+            Prompts = new List<Prompt>() {
+                new Prompt("Hey there! How are you doing today?",  new List<string>() {"Good", "Bad" }),
+                new Prompt("Have you watered your FloarWear?",  new List<string>() {"Good", "Bad" })
+            },
+
+        },
+        new State
+        {
+            Name = "WaterAsked",
+            Prompts = new List<Prompt>() {
+                new Prompt("Are you happy with your FloraWear?",  new List<string>() {"Good", "Bad" }),
+                new Prompt("Hey there! How are you doing today?",  new List<string>() {"Good", "Bad" }),
+                new Prompt("Hey there! How are you doing today?",  new List<string>() {"Good", "Bad" }),
+                new Prompt("Hey there! How are you doing today?",  new List<string>() {"Good", "Bad" }),
+            },
+        },
+        new State
+        {
+            Name = "NeedSunshine",
+        }
+    };
+        private int currentStateIndex = 0;
+        private State currentState = null;
+        private string input;
+
+    }
+
+    public class State
+    {
+        public string Name { get; set; }
+        public List<Prompt> Prompts { get; set; }
+        private System.Random rand = new System.Random();
+
+        public Prompt SelectPrompt()
+        {
+            // select a prompt from list and return
+            return Prompts[rand.Next(Prompts.Count)];
+        }
+
+    }
+
+    public class Prompt
+    {
+
+        public Prompt(string message, List<string> responses)
+        {
+            this.PromptText = message;
+            this.Responses = responses;
+        }
+
+        public List<string> Responses { get; set; }
+        public string PromptText { get; set; }
+        public bool Responded { get; set; }
+    }
+}
