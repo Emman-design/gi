@@ -1,0 +1,87 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UI;
+using TMPro;
+using FiniteStateMachine;
+
+public class BubbleMessage : MonoBehaviour
+{
+    public GameObject bubblePrefab;
+    public Transform bubbleParent;
+    public TextMeshPro messageText;
+    public List<Sprite> emojiList;
+    //public int daysSincePlant;
+
+    private int currentState;
+    private GameObject bubble;
+    private List<string> messages = new List<string>() {
+        "Hey there! How are you doing today?",
+        "By the way, have you watered your plant recently?",
+        "It's been days since you got your plant. Don't forget to water it!",
+        "Great job! Keep up the good work!",
+        "Oops, looks like you forgot to water your plant. Better do it soon!",
+        "Thanks for taking care of your plant. It looks healthy!"
+    };
+
+    private void Start()
+    {
+        // Set initial state to greeting
+       currentState = 0;
+        // Create bubble object from prefab
+        //bubble = Instantiate(bubblePrefab, bubbleParent);
+        // Set message text to greeting
+        bubblePrefab.SetActive(true);
+        messageText.text = messages[currentState];
+    }
+
+    private void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            // Advance to the next state on spacebar press
+            currentState++;
+            // Set message text based on current state
+            messageText.text = messages[currentState];
+            // Add emoji buttons for appropriate states
+            if (currentState == 1 || currentState == 2 || currentState == 4)
+            {
+                AddEmojiButtons();
+            }
+        }
+    }
+
+    private void AddEmojiButtons()
+    {
+        // Clear any existing emoji buttons
+        foreach (Transform child in bubble.transform)
+        {
+            Destroy(child.gameObject);
+        }
+        // Add emoji buttons to bubble
+        int emojiIndex = 0;
+        foreach (Sprite emoji in emojiList)
+        {
+            GameObject button = new GameObject("EmojiButton" + emojiIndex);
+            button.transform.SetParent(bubble.transform);
+            button.AddComponent<Image>().sprite = emoji;
+            button.AddComponent<Button>().onClick.AddListener(() => OnEmojiClick(emojiIndex));
+            emojiIndex++;
+        }
+    }
+
+    private void OnEmojiClick(int emojiIndex)
+    {
+        // Update message text with selected emoji
+        messageText.text += " " + emojiList[emojiIndex].name;
+        // Remove emoji buttons
+        foreach (Transform child in bubble.transform)
+        {
+            Destroy(child.gameObject);
+        }
+        // Advance to the next state
+        currentState++;
+        // Set message text based on current state
+        messageText.text = messages[currentState];
+    }
+}
