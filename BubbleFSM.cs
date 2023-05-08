@@ -1,0 +1,178 @@
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UI;
+using TMPro;
+
+namespace FiniteStateMachine
+{
+    public class BubbleFSM : MonoBehaviour
+    {
+        public TextMeshPro promptText;
+        public Panel responsePanel;
+
+        private readonly List<State> states = new List<State>() {
+            new State
+            {
+                Name = "FirstGreeting",
+                Prompts = new List<Prompt>() { new Prompt("Hi! I'm Clover.", new List<string>() { "Hi" }) },
+            },
+            new State
+            {
+                Name = "NeedWater",
+                Prompts = new List<Prompt>() {
+                    new Prompt("Hey there! How are you doing today?",  new List<string>() {"Good", "Bad" }),
+                    new Prompt("Have you watered your FloarWear?",  new List<string>() {"Yes", "No" })
+                },
+            },
+            new State
+            {
+                Name = "WaterAsked",
+                Prompts = new List<Prompt>() {
+                    new Prompt("Are you happy with your FloraWear?",  new List<string>() {"Yes", "No" }),
+                    new Prompt("Do you want to get more FloraWear?",  new List<string>() {"Yes", "No" })
+                },
+            },
+            new State
+            {
+                Name = "NeedSunshine",
+                Prompts = new List<Prompt>() {
+                    new Prompt("How much sunlight does your FloraWear need?",  new List<string>() {"Low", "Medium", "High" }),
+                    new Prompt("Have you given enough sunlight to your FloraWear?",  new List<string>() {"Yes", "No" })
+                },
+            },
+        };
+
+        private int currentStateIndex = 0;
+        private State currentState = null;
+
+        private void Start()
+        {
+            // Set the initial state
+            currentState = states[currentStateIndex];
+
+            // Display the first prompt
+            DisplayPrompt(currentState.SelectPrompt());
+        }
+
+        private void DisplayPrompt(Prompt prompt)
+        {
+            // Show the prompt text on the screen
+            promptText.text = prompt.PromptText;
+
+            // Clear the response text on the screen
+            //responseText.text = "";
+            foreach(var response in prompt.Responses)
+            {
+                var button;
+                // create a button for each response
+                //DefaultControls.CreateButton()
+
+                //add event handler for button
+                button.onClick.AddListener(delegate { HandleButtonClick(prompt, response); });
+            }
+
+            // Mark the prompt as not yet responded
+            prompt.Responded = false;
+        }
+
+        private void DisplayResponse(string response)
+        {
+            // Show the response text on the screen
+            responseText.text = response;
+        }
+
+        private void HandleButtonClick(Prompt prompt, string response)
+        {
+            prompt.SelectedRepsonse = response;
+            prompt.Responded = true;
+
+            AdvanceState(response);
+        }
+
+        private void AdvanceState(string response)
+        {
+            // Mark the current prompt as responded
+            //currentState.CurrentPrompt.Responded = true;
+
+            // Find the next prompt based on the user's response
+            Prompt nextPrompt = currentState.Prompts.Find(p => p.Responses.Contains(response));
+
+            if (nextPrompt != null)
+            {
+                // Find the index of the next state based on the name of the next prompt
+                int nextStateIndex = states.FindIndex(s => s.Name == nextPrompt.PromptText);
+
+                if (nextStateIndex >= 0)
+                {
+                    // Set the next state and display the next prompt
+                    currentStateIndex = nextStateIndex;
+                    currentState = states[currentStateIndex];
+                    DisplayPrompt(currentState.SelectPrompt());
+                }
+            }
+        }
+
+        private void Update()
+        {
+            // Check for user input
+            if (Input.GetKeyDown(KeyCode.Return))
+            {
+                // Get the user's input text
+                string input = Input.inputString.Trim().ToLower();
+
+                // Find the current prompt
+                Prompt currentPrompt = currentState.SelectPrompt();
+
+                if (!currentPrompt.Responded && currentPrompt.Responses.Contains(input))
+                {
+                    // Display the user's response
+                    DisplayResponse(input);
+
+                    // Advance to the next state
+                    AdvanceState(input);
+                }
+            }
+        }
+    }
+
+    public class State
+    {
+        public string Name { get; set; }
+        public List<Prompt> Prompts { get; set; }
+        public Prompt CurrentPrompt { get; set; }
+
+        private System.Random rand = new System.Random();
+        
+
+        public Prompt SelectPrompt()
+        {
+            // Select a random prompt from the list that has not yet been responded to
+            List<Prompt> unansweredPrompts = Prompts.FindAll(p => !p.Responded);
+            if (unansweredPrompts.Count == 0)
+            {
+                // If all prompts have been responded to, select a random prompt from the list
+                CurrentPrompt = Prompts[rand.Next(Prompts.Count)];
+            }
+            else
+            {
+                // If there are unanswered prompts, select a random one from the list
+                CurrentPrompt = unansweredPrompts[rand.Next(unansweredPrompts.Count)];
+            }
+            return CurrentPrompt;
+        }
+    }
+
+    public class Prompt
+    {
+        public Prompt(string message, List<string> responses)
+        {
+            this.PromptText = message;
+            this.Responses = responses;
+        }
+
+        public List<string> Responses { get; set; }
+        public string PromptText { get; set; }
+        public bool Responded { get; set; }
+        public string SelectedRepsonse { get; set; }
+    }
+}
